@@ -1,18 +1,18 @@
 <template>
   <div class="recommend" ref="recommend">
-    <div class="recommend-content">
+    <scroll class="recommend-content" ref="scroll" :data="discList">
       <div>
         <div v-if="recommends.length" class="slider-wrapper">
           <slider>
             <div v-for="item in recommends">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" alt="" />
+                <img @load="loadImage" :src="item.picUrl" alt="" />
               </a>
             </div>
           </slider>
         </div>
-      </div>
-      <div class="recommend-list">
+      
+        <div class="recommend-list">
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
             <li v-for="item in discList" class="item">
@@ -26,12 +26,19 @@
             </li>
           </ul>
         </div>
-    </div>
+        
+      </div>
+      <div class="loading-container" v-if="!discList.length>0">
+        <loading :title="title"></loading>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import Slider from 'base/slider/slider'
+  import Scroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
   import { getRecommend, getDiscList } from 'api/recommend'
   import { ERR_OK } from 'api/config'
 
@@ -39,7 +46,8 @@
     data() {
       return {
         recommends: [],
-        discList: []
+        discList: [],
+        title: '等待中'
       }
     },
     created() {
@@ -59,13 +67,21 @@
         getDiscList().then((res) => {
           if(res.code == ERR_OK) {
             this.discList = res.data.list
-            console.log(this.discList)
+            //console.log(this.discList)
           }
         })
+      },
+      loadImage() {
+        if(!this.checkLoaded) {
+          this.$refs.scroll.refresh()
+          this.checkLoaded = true
+        }
       }
     },
     components: {
-      Slider
+      Slider,
+      Scroll,
+      Loading
     }
   }
 </script>
